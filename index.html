@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Függvénygyakorló</title>
+    <style>
+
+/* playful embedded CSS */
+:root{
+  --bg1:#fdfbfb;--bg2:#ebedee;--ink:#2e2e2e;--muted:#6b7280;--card:#ffffff;--border:rgba(0,0,0,.08);
+  --shadow:0 10px 25px rgba(0,0,0,.08);--primary:#ff7f50;--primary-2:#ffb347;--secondary:#00bfa6;--success:#9be564;--error:#ff6f61;--info:#ffd166;--radius:20px;
+}
+html,body{height:100%;}
+body{margin:0;padding:24px;max-width:1100px;margin-inline:auto;font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);line-height:1.7;background:linear-gradient(135deg,var(--bg1),var(--bg2));background-attachment:fixed;}
+h1{text-align:center;font-weight:800;letter-spacing:.4px;color:var(--primary);font-size:clamp(1.8rem,2.5vw,2.6rem);margin:10px 0 24px;position:relative;}
+h1::after{content:"🧮✨";display:inline-block;margin-left:.4rem;transform:translateY(2px);}h2,h3{color:var(--secondary);margin:0 0 12px;}
+#app-wrapper{display:grid;grid-template-columns:1fr 1fr;gap:28px;}@media(max-width:900px){#app-wrapper{grid-template-columns:1fr;}}
+#data-container,#quiz-container,#challenge-results-container{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);animation:cardEnter .35s ease;}
+#quiz-container{position:relative;overflow:hidden;}
+#quiz-container::before,#quiz-container::after{content:"";position:absolute;border-radius:50%;filter:blur(8px);opacity:.15;z-index:0;}
+#quiz-container::before{width:160px;height:160px;background:var(--primary);right:-40px;top:-40px;animation:float 8s ease-in-out infinite;}
+#quiz-container::after{width:120px;height:120px;background:var(--secondary);left:-30px;bottom:-30px;animation:float 7s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+#data-table table{width:100%;border-collapse:separate;border-spacing:0;font-size:.95rem;border:1px solid var(--border);overflow:hidden;border-radius:14px;}
+#data-table thead th{background:linear-gradient(180deg,#fafafa,#f1f5f9);color:#334155;border-bottom:1px solid var(--border);text-align:center;font-weight:700;}
+#data-table th,#data-table td{border-right:1px solid var(--border);padding:10px 12px;}
+#data-table tr:nth-child(even) td{background:#fafafa;}
+#data-table th:first-child{background:#eef2ff;color:#4338ca;font-weight:700;text-align:center;}
+#data-table td:last-child,#data-table th:last-child{border-right:none;}
+.input-group{margin:14px 0 18px;position:relative;z-index:1;}
+label{font-weight:700;color:#334155;margin-bottom:6px;display:block;}
+select,input[type="text"],button{width:100%;padding:12px 14px;font-size:1rem;border-radius:30px;border:1px solid var(--border);box-sizing:border-box;outline:none;transition:box-shadow .2s,transform .08s ease;background:#fff;}
+select:focus,input[type="text"]:focus{box-shadow:0 0 0 4px rgba(0,191,166,.15);}input::placeholder{color:#9aa3af;}
+button{cursor:pointer;font-weight:800;letter-spacing:.3px;color:#fff;border:none;background:linear-gradient(45deg,var(--primary),var(--primary-2));box-shadow:0 6px 14px rgba(255,127,80,.35);}
+button:hover{transform:translateY(-1px);}button:active{transform:translateY(0);filter:saturate(1.1);}
+#check-formula-btn{background:linear-gradient(45deg,#6366f1,#22d3ee);box-shadow:0 6px 14px rgba(99,102,241,.28);}
+#next-question-btn,#restart-btn{background:linear-gradient(45deg,#22c55e,#4ade80);box-shadow:0 6px 14px rgba(34,197,94,.28);}
+.mode-btn-small,#start-challenge-btn{width:auto;display:inline-block;padding:10px 18px;background:linear-gradient(45deg,#ef4444,#f97316);box-shadow:0 6px 14px rgba(239,68,68,.28);}
+#question-area{background:#fff8ea;border:1px dashed #ffd166;border-radius:16px;padding:14px 16px;margin:10px 0 18px;}
+#question-text{color:#0f172a;font-size:1.1rem;}
+#question-hint{margin-top:10px;font-style:normal;color:#7c5c00;background:#fff3c4;border:1px solid #ffe58f;padding:10px 12px;border-radius:12px;}
+#feedback-area{margin-top:16px;padding:12px 14px;border-radius:14px;font-weight:800;letter-spacing:.2px;}
+.feedback-success{background:#eaffea;border:2px solid var(--success);color:#14532d;animation:popIn .35s ease;}
+.feedback-error{background:#ffecec;border:2px solid var(--error);color:#7f1d1d;animation:popIn .35s ease;}
+@keyframes popIn{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}
+#syntax-hint-area{display:none;background:#eef2ff;color:#1e293b;padding:12px 14px;border-radius:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;border:1px solid #c7d2fe;}
+#data-container>h2::before{content:"📊 ";}#quiz-container>h2::before{content:"🎯 ";}#challenge-results-container h2::before{content:"🏆 ";}
+#challenge-results-container{display:none;}#challenge-score{text-align:center;font-size:1.6rem;color:#0ea5e9;}
+.result-item{border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;background:#fafafa;}
+.result-item.correct{background:#effdf3;border-color:#bbf7d0;}.result-item.incorrect{background:#fff1f2;border-color:#fecdd3;}
+.result-item h4{margin:0 0 6px;}.result-item p{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:#ffffff;padding:6px 8px;border-radius:10px;border:1px dashed #e2e8f0;}
+#mode-switch-container{margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+@keyframes cardEnter{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+small,.muted{color:var(--muted);}
+
+</style>
+</head>
+<body>
+
+    <h1>Függvénygyakorló</h1>
+
+    <div id="app-wrapper">
+        <div id="data-container">
+            <h2 id="data-table-title"></h2>
+            <p>A képletek írásánál vedd figyelembe, hogy a fejléc az 1. sorban van, az adatok pedig a 2. sortól kezdődnek.</p>
+            <div id="data-table"></div>
+        </div>
+
+        <div id="quiz-container">
+            <h2 id="quiz-title">Gyakorló Mód</h2>
+            
+            <div id="mode-switch-container">
+                <button id="start-challenge-btn" class="mode-btn-small">Kihívás Mód Indítása</button>
+            </div>
+
+            <div id="question-area">
+                <h3 id="question-text"></h3>
+                <p id="question-hint"></p>
+            </div>
+
+            <div id="step-1" class="input-group">
+                <label for="function-dropdown">1. Válassz függvényt:</label>
+                <select id="function-dropdown">
+                    </select>
+                <button id="check-function-btn" style="margin-top: 10px;">Függvény ellenőrzése</button>
+            </div>
+
+            <div id="step-2" class="input-group">
+                <label for="formula-input">2. Írd be a teljes képletet:</label>
+                <input type="text" id="formula-input" placeholder="=SZUM(A1:A10)">
+                <button id="check-formula-btn" style="margin-top: 10px;">Ellenőrzés</button>
+            </div>
+
+            <div id="feedback-area"></div>
+            <div id="syntax-hint-area"></div>
+
+            <button id="next-question-btn">Következő feladat</button>
+        </div>
+    </div>
+
+    <div id="challenge-results-container">
+        <h2>Kihívás Értékelése</h2>
+        <div id="challenge-results-list">
+            </div>
+        <h3 id="challenge-score"></h3>
+        <button id="restart-btn" style="margin-top: 20px;">Vissza a Gyakorláshoz</button>
+    </div>
+
+
+    <script>
+        // --- ADATOK ---
+
+        const allFunctions = [
+            "Válassz...", "SZUM", "SZUMHA", "DARABTELI", "ÁTLAG", "ÁTLAGHA", "MIN", "MAX", "KICSI", "NAGY", "HA", "KEREKÍTÉS"
+        ];
+
+        // --- TELJES ADATBÁZIS (MIND A 10 TÁBLA) ---
+        const allTables = [
+            // 0. Autókereskedés
+            {
+                sheetName: "1. Autókereskedés",
+                tableData: [
+                    { Típus: "Astra", Márka: "Opel", Extra: "Igen", Ár: 560000, Eladott: 4, Bevétel: 2240000, Értékesítő: "Kiss Iza" },
+                    { Típus: "Splash", Márka: "Suzuki", Extra: "Igen", Ár: 780000, Eladott: 1, Bevétel: 780000, Értékesítő: "Sáva Emil" },
+                    { Típus: "Insignia", Márka: "Opel", Extra: "Nem", Ár: 1300000, Eladott: 7, Bevétel: 9100000, Értékesítő: "Kiss Iza" },
+                    { Típus: "Mondeo", Márka: "Ford", Extra: "Igen", Ár: 1119000, Eladott: 4, Bevétel: 4476000, Értékesítő: "Nemes Tibor" },
+                    { Típus: "XJ", Márka: "Jaguar", Extra: "Nem", Ár: 3560000, Eladott: 1, Bevétel: 3560000, Értékesítő: "Nemes Tibor" },
+                    { Típus: "Fiesta", Márka: "Ford", Extra: "Nem", Ár: 1500000, Eladott: 7, Bevétel: 10500000, Értékesítő: "Nemes Tibor" },
+                    { Típus: "Vectra", Márka: "Opel", Extra: "Igen", Ár: 1160000, Eladott: 10, Bevétel: 11600000, Értékesítő: "Réz Andor" },
+                    { Típus: "6", Márka: "Mazda", Extra: "Nem", Ár: 3600000, Eladott: 3, Bevétel: 10800000, Értékesítő: "Kiss Iza" },
+                    { Típus: "Passat", Márka: "Volkswagen", Extra: "Igen", Ár: 1890000, Eladott: 6, Bevétel: 11340000, Értékesítő: "Kiss Iza" },
+                    { Típus: "Avensis", Márka: "Toyota", Extra: "Nem", Ár: 1750000, Eladott: 1, Bevétel: 1750000, Értékesítő: "Sáva Emil" },
+                    { Típus: "Focus", Márka: "Ford", Extra: "Igen", Ár: 2065000, Eladott: 6, Bevétel: 12390000, Értékesítő: "Nemes Tibor" },
+                    { Típus: "Fabia", Márka: "Skoda", Extra: "Igen", Ár: 1250000, Eladott: 5, Bevétel: 6250000, Értékesítő: "Sáva Emil" }
+                ]
+            },
+            // 1. Bolt Eladás
+            {
+                sheetName: "2. Bolt Eladás",
+                tableData: [
+                    { Termék: "Kenyér", Kategória: "Pékség", Egységár: 450, "Eladott db": 120, Akciós: "Nem", Eladó: "Anna", Bevétel: 54000 },
+                    { Termék: "Tej", Kategória: "Tejtermék", Egységár: 350, "Eladott db": 180, Akciós: "Igen", Eladó: "Béla", Bevétel: 63000 },
+                    { Termék: "Sajt", Kategória: "Tejtermék", Egységár: 2100, "Eladott db": 60, Akciós: "Nem", Eladó: "Anna", Bevétel: 126000 },
+                    { Termék: "Alma", Kategória: "Zöldség/gyümölcs", Egységár: 520, "Eladott db": 150, Akciós: "Igen", Eladó: "Csaba", Bevétel: 78000 },
+                    { Termék: "Narancs", Kategória: "Zöldség/gyümölcs", Egységár: 690, "Eladott db": 130, Akciós: "Nem", Eladó: "Béla", Bevétel: 89700 },
+                    { Termék: "Kávé", Kategória: "Ital", Egységár: 2890, "Eladott db": 40, Akciós: "Nem", Eladó: "Anna", Bevétel: 115600 },
+                    { Termék: "Tea", Kategória: "Ital", Egységár: 1290, "Eladott db": 55, Akciós: "Igen", Eladó: "Csaba", Bevétel: 70950 }
+                ]
+            },
+            // 2. Jegyek
+            {
+                sheetName: "3. Jegyek",
+                tableData: [
+                    { Diák: "Dorka", Tantárgy: "Matek", Jegy: 5, Pontszám: 92, "Házi feladat?": "Igen", Tanár: "Kovács" },
+                    { Diák: "Gábor", Tantárgy: "Matek", Jegy: 3, Pontszám: 68, "Házi feladat?": "Nem", Tanár: "Kovács" },
+                    { Diák: "Zita", Tantárgy: "Töri", Jegy: 4, Pontszám: 74, "Házi feladat?": "Igen", Tanár: "Nagy" },
+                    { Diák: "Levi", Tantárgy: "Töri", Jegy: 2, Pontszám: 43, "Házi feladat?": "Nem", Tanár: "Nagy" },
+                    { Diák: "Noémi", Tantárgy: "Angol", Jegy: 5, Pontszám: 98, "Házi feladat?": "Igen", Tanár: "Smith" },
+                    { Diák: "Bence", Tantárgy: "Matek", Jegy: 4, Pontszám: 85, "Házi feladat?": "Igen", Tanár: "Kovács" },
+                    { Diák: "Réka", Tantárgy: "Angol", Jegy: 5, Pontszám: 91, "Házi feladat?": "Nem", Tanár: "Smith" },
+                    { Diák: "Áron", Tantárgy: "Fizika", Jegy: 3, Pontszám: 66, "Házi feladat?": "Igen", Tanár: "Tóth" },
+                    { Diák: "Luca", Tantárgy: "Angol", Jegy: 4, Pontszám: 78, "Házi feladat?": "Igen", Tanár: "Smith" },
+                    { Diák: "Máté", Tantárgy: "Fizika", Jegy: 2, Pontszám: 52, "Házi feladat?": "Nem", Tanár: "Tóth" }
+                ]
+            },
+            // 3. Foci
+            {
+                sheetName: "4. Foci",
+                tableData: [
+                    { Meccs: 1, Csapat: "Párducok", Gól: 2, Lövés: 9, "Kapott gól": 1, "Hazai?": "Igen" },
+                    { Meccs: 2, Csapat: "Párducok", Gól: 1, Lövés: 7, "Kapott gól": 2, "Hazai?": "Nem" },
+                    { Meccs: 3, Csapat: "Sólymok", Gól: 3, Lövés: 12, "Kapott gól": 1, "Hazai?": "Igen" },
+                    { Meccs: 4, Csapat: "Sólymok", Gól: 0, Lövés: 5, "Kapott gól": 1, "Hazai?": "Nem" },
+                    { Meccs: 5, Csapat: "Párducok", Gól: 1, Lövés: 10, "Kapott gól": 0, "Hazai?": "Igen" },
+                    { Meccs: 6, Csapat: "Sólymok", Gól: 2, Lövés: 8, "Kapott gól": 1, "Hazai?": "Nem" },
+                    { Meccs: 7, Csapat: "Párducok", Gól: 4, Lövés: 14, "Kapott gól": 2, "Hazai?": "Nem" },
+                    { Meccs: 8, Csapat: "Sólymok", Gól: 1, Lövés: 6, "Kapott gól": 0, "Hazai?": "Igen" }
+                ]
+            },
+            // 4. Utazás
+            {
+                sheetName: "5. Utazás",
+                tableData: [
+                    { Utas: "Anna", "Úticél": "Róma", Napok: 4, "Ár/éj": 32000, "Félpanzió?": "Igen", Összeg: 128000 },
+                    { Utas: "Béla", "Úticél": "Párizs", Napok: 5, "Ár/éj": 45000, "Félpanzió?": "Nem", Összeg: 225000 },
+                    { Utas: "Csilla", "Úticél": "London", Napok: 3, "Ár/éj": 52000, "Félpanzió?": "Igen", Összeg: 156000 },
+                    { Utas: "Dani", "Úticél": "Prága", Napok: 2, "Ár/éj": 28000, "Félpanzió?": "Nem", Összeg: 56000 },
+                    { Utas: "Emese", "Úticél": "Athén", Napok: 7, "Ár/éj": 39000, "Félpanzió?": "Igen", Összeg: 273000 },
+                    { Utas: "Ferenc", "Úticél": "Barcelona", Napok: 6, "Ár/éj": 47000, "Félpanzió?": "Nem", Összeg: 282000 },
+                    { Utas: "Gina", "Úticél": "Róma", Napok: 5, "Ár/éj": 33000, "Félpanzió?": "Igen", Összeg: 165000 },
+                    { Utas: "Hanna", "Úticél": "Párizs", Napok: 3, "Ár/éj": 41000, "Félpanzió?": "Nem", Összeg: 123000 }
+                ]
+            },
+            // 5. Könyvtár
+            {
+                sheetName: "6. Könyvtár",
+                tableData: [
+                    { Olvasó: "Éva", Műfaj: "Regény", Oldalszám: 320, "Késés nap": 0, "Kölcsönzés (nap)": 14, "Késedelmi díj": 0 },
+                    { Olvasó: "Tamás", Műfaj: "Krimi", Oldalszám: 280, "Késés nap": 2, "Kölcsönzés (nap)": 14, "Késedelmi díj": 300 },
+                    { Olvasó: "Lilla", Műfaj: "Ismeretterj.", Oldalszám: 190, "Késés nap": 0, "Kölcsönzés (nap)": 21, "Késedelmi díj": 0 },
+                    { Olvasó: "Misi", Műfaj: "Regény", Oldalszám: 410, "Késés nap": 5, "Kölcsönzés (nap)": 14, "Késedelmi díj": 750 },
+                    { Olvasó: "Zsófi", Műfaj: "Krimi", Oldalszám: 360, "Késés nap": 1, "Kölcsönzés (nap)": 21, "Késedelmi díj": 150 },
+                    { Olvasó: "András", Műfaj: "Regény", Oldalszám: 500, "Késés nap": 0, "Kölcsönzés (nap)": 28, "Késedelmi díj": 0 },
+                    { Olvasó: "Kata", Műfaj: "Ismeretterj.", Oldalszám: 220, "Késés nap": 3, "Kölcsönzés (nap)": 21, "Késedelmi díj": 450 },
+                    { Olvasó: "Bori", Műfaj: "Regény", Oldalszám: 150, "Késés nap": 0, "Kölcsönzés (nap)": 14, "Késedelmi díj": 0 }
+                ]
+            },
+            // 6. Időjárás
+            {
+                sheetName: "7. Időjárás",
+                tableData: [
+                    { Nap: "H", Város: "Budapest", "Hőmérséklet (°C)": 18.6, "Csapadék (mm)": 0, "Szél (km/h)": 12 },
+                    { Nap: "K", Város: "Budapest", "Hőmérséklet (°C)": 19.1, "Csapadék (mm)": 1.2, "Szél (km/h)": 15 },
+                    { Nap: "Sze", Város: "Budapest", "Hőmérséklet (°C)": 21.3, "Csapadék (mm)": 0, "Szél (km/h)": 10 },
+                    { Nap: "Cs", Város: "Budapest", "Hőmérséklet (°C)": 23.0, "Csapadék (mm)": 5, "Szél (km/h)": 18 },
+                    { Nap: "P", Város: "Budapest", "Hőmérséklet (°C)": 22.4, "Csapadék (mm)": 0.8, "Szél (km/h)": 14 },
+                    { Nap: "Szo", Város: "Budapest", "Hőmérséklet (°C)": 20.2, "Csapadék (mm)": 2.5, "Szél (km/h)": 16 },
+                    { Nap: "V", Város: "Budapest", "Hőmérséklet (°C)": 18.9, "Csapadék (mm)": 0, "Szél (km/h)": 11 }
+                ]
+            },
+            // 7. Webshop
+            {
+                sheetName: "8. Webshop",
+                tableData: [
+                    { "Rendelés #": 101, Vevő: "Kovács", Ország: "HU", Nettó: 12490, "ÁFA kulcs": 0.27, "Szállítási díj": 0, Bruttó: 15862.3 },
+                    { "Rendelés #": 102, Vevő: "Nagy", Ország: "DE", Nettó: 39900, "ÁFA kulcs": 0.19, "Szállítási díj": 2500, Bruttó: 49981 },
+                    { "Rendelés #": 103, Vevő: "Szabó", Ország: "HU", Nettó: 8590, "ÁFA kulcs": 0.27, "Szállítási díj": 1500, Bruttó: 12409.3 },
+                    { "Rendelés #": 104, Vevő: "Tóth", Ország: "AT", Nettó: 25990, "ÁFA kulcs": 0.2, "Szállítási díj": 0, Bruttó: 31188 },
+                    { "Rendelés #": 105, Vevő: "Kiss", Ország: "HU", Nettó: 149900, "ÁFA kulcs": 0.27, "Szállítási díj": 0, Bruttó: 190373 },
+                    { "Rendelés #": 106, Vevő: "Farkas", Ország: "RO", Nettó: 27900, "ÁFA kulcs": 0.19, "Szállítási díj": 2500, Bruttó: 35701 },
+                    { "Rendelés #": 107, Vevő: "Horváth", Ország: "HU", Nettó: 9900, "ÁFA kulcs": 0.27, "Szállítási díj": 1500, Bruttó: 14073 }
+                ]
+            },
+            // 8. Gyártás
+            {
+                sheetName: "9. Gyártás",
+                tableData: [
+                    { Tétel: "A01", Üzem: "Kelet", "Összes db": 5000, "Hibás db": 35, Műszak: "Délelőtt", "Selejt %": 0.007 },
+                    { Tétel: "A02", Üzem: "Kelet", "Összes db": 4200, "Hibás db": 44, Műszak: "Délután", "Selejt %": 0.010476 },
+                    { Tétel: "A03", Üzem: "Nyugat", "Összes db": 3800, "Hibás db": 28, Műszak: "Éjjel", "Selejt %": 0.007368 },
+                    { Tétel: "B01", Üzem: "Nyugat", "Összes db": 6100, "Hibás db": 90, Műszak: "Délelőtt", "Selejt %": 0.014754 },
+                    { Tétel: "B02", Üzem: "Dél", "Összes db": 4500, "Hibás db": 30, Műszak: "Délután", "Selejt %": 0.006667 },
+                    { Tétel: "C01", Üzem: "Észak", "Összes db": 5200, "Hibás db": 39, Műszak: "Éjjel", "Selejt %": 0.0075 },
+                    { Tétel: "C02", Üzem: "Észak", "Összes db": 5100, "Hibás db": 45, Műszak: "Délelőtt", "Selejt %": 0.008824 }
+                ]
+            },
+            // 9. Adomány
+            {
+                sheetName: "10. Adomány",
+                tableData: [
+                    { Adományozó: "Alfa Kft.", Csatorna: "Online", Összeg: 200000, "Ismétlődik?": "Nem", Város: "Bp.", Koordinátor: "Iza" },
+                    { Adományozó: "Béres Zrt.", Csatorna: "Személyes", Összeg: 150000, "Ismétlődik?": "Igen", Város: "Debrecen", Koordinátor: "Bence" },
+                    { Adományozó: "Cédrus Bt.", Csatorna: "Online", Összeg: 50000, "Ismétlődik?": "Igen", Város: "Bp.", Koordinátor: "Iza" },
+                    { Adományozó: "Duna Rt.", Csatorna: "Rendezvény", Összeg: 300000, "Ismétlődik?": "Nem", Város: "Szeged", Koordinátor: "Csilla" },
+                    { Adományozó: "Eperfa Kft.", Csatorna: "Online", Összeg: 120000, "Ismétlődik?": "Igen", Város: "Bp.", Koordinátor: "Iza" },
+                    { Adományozó: "Flóra Bt.", Csatorna: "Személyes", Összeg: 80000, "Ismétlődik?": "Nem", Város: "Pécs", Koordinátor: "Bence" },
+                    { Adományozó: "Gábor", Csatorna: "Online", Összeg: 10000, "Ismétlődik?": "Igen", Város: "Bp.", Koordinátor: "Iza" },
+                    { Adományozó: "Hanna", Csatorna: "Rendezvény", Összeg: 60000, "Ismétlődik?": "Nem", Város: "Győr", Koordinátor: "Csilla" }
+                ]
+            }
+        ];
+
+        // --- AZ ÖSSZES FELADAT EGYSÉGESÍTVE ---
+        const allQuestions = [
+            // --- 0. Autókereskedés (sheetId: 0) ---
+            {
+                sheetId: 0,
+                question: "Mennyi az összes bevétel?",
+                hint: "Összesítsd a 'Bevétel' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(F2:F13)", syntaxHint: "=SZUM(összeadandó számok)" 
+            },
+            {
+                sheetId: 0,
+                question: "Hány autót adott el összesen Nemes Tibor?",
+                hint: "Összegezd az 'Eladott' oszlopot, ahol az értékesítő 'Nemes Tibor'!",
+                correctFunction: "SZUMHA", correctFormula: "=SZUMHA(G2:G13;\"Nemes Tibor\";E2:E13)", syntaxHint: "=SZUMHA(honnan van a feltételem; mi a feltételem; összeadandó számok)" 
+            },
+            {
+                sheetId: 0,
+                question: "Hány autót adtak el extra garanciával?",
+                hint: "Összegezd az 'Eladott' oszlopot, ahol az extra 'Igen'!",
+                correctFunction: "SZUMHA", correctFormula: "=SZUMHA(C2:C13;\"Igen\";E2:E13)", syntaxHint: "=SZUMHA(honnan van a feltételem; mi a feltételem; összeadandó számok)" 
+            },
+            {
+                sheetId: 0,
+                question: "Mennyi az Opel autók átlagára?",
+                hint: "Számold ki az 'Ár' átlagát, ahol a márka 'Opel'!",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(B2:B13;\"Opel\";D2:D13)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem; átlagolandó számok)" 
+            },
+            {
+                sheetId: 0,
+                question: "Mennyi a legalacsonyabb ár?",
+                hint: "Keresd meg a minimum értéket az 'Ár' oszlopban!",
+                correctFunction: "MIN", correctFormula: "=MIN(D2:D13)", syntaxHint: "=MIN(honnan választok)" 
+            },
+             {
+                sheetId: 0,
+                question: "Mennyi a legmagasabb ár?",
+                hint: "Keresd meg a maximum értéket az 'Ár' oszlopban!",
+                correctFunction: "MAX", correctFormula: "=MAX(D2:D13)", syntaxHint: "=MAX(honnan választok)" 
+            },
+            {
+                sheetId: 0,
+                question: "Mi a 2. legolcsóbb ár?",
+                hint: "Keresd meg a 2. legkisebb értéket az 'Ár' oszlopban!",
+                correctFunction: "KICSI", correctFormula: "=KICSI(D2:D13;2)", syntaxHint: "=KICSI(honnan választok;hányadikat választom)" 
+            },
+            {
+                sheetId: 0,
+                question: "Mi a 2. legdrágább ár?",
+                hint: "Keresd meg a 2. legnagyobb értéket az 'Ár' oszlopban!",
+                correctFunction: "NAGY", correctFormula: "=NAGY(D2:D13;2)", syntaxHint: "=NAGY(honnan választok;hányadikat választom)" 
+            },
+            {
+                sheetId: 0,
+                question: "A 2 millió Ft-nál drágább autók 'Prémium' kategóriásak. Írj képletet, ami az első autó (Astra) ára alapján megmondja, hogy 'Igen' (prémium) vagy 'Nem' (nem prémium)!",
+                hint: "A logikai vizsgálatot (2 milliónál drágább) a D2 cellán kell elvégezned. Az eredmény 'Igen' vagy 'Nem' legyen.",
+                correctFunction: "HA", correctFormula: "=HA(D2>2000000;\"Igen\";\"Nem\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)" 
+            },
+            {
+                sheetId: 0,
+                question: "Írj egy képletet, ami kerekíti az első autó (Astra) árát tízezerre!",
+                hint: "Használd a KEREKÍTÉS függvényt az első áron. A tízezerre kerekítéshez -4-et használj!",
+                correctFunction: "KEREKÍTÉS", correctFormula: "=KEREKÍTÉS(D2;-4)", syntaxHint: "=KEREKÍTÉS(szám;tizedesjegyek)" 
+            },
+	    {
+                sheetId: 0,
+                question: "Hányféle 'Opel'-t árulnak a kereskedésben?",
+                hint: "Számold meg, hány darab Opel van a B oszlopban!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(B2:B13;\"Opel\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)" 
+            },
+
+            // --- 1. Bolt Eladás (sheetId: 1) ---
+            {
+                sheetId: 1,
+                question: "Mennyi az összes bevétel?",
+                hint: "Összesítsd a 'Bevétel' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(G2:G8)", syntaxHint: "=SZUM(összeadandó számok)"
+            },
+            {
+                sheetId: 1,
+                question: "Mennyi az átlagos egységár?",
+                hint: "Számold ki az 'Egységár' oszlop átlagát!",
+                correctFunction: "ÁTLAG", correctFormula: "=ÁTLAG(C2:C8)", syntaxHint: "=ÁTLAG(átlagolandó számok)"
+            },
+            {
+                sheetId: 1,
+                question: "Mennyi bevétel származott akciós termékekből?",
+                hint: "Összegezd a 'Bevétel' értékét, ahol az 'Akciós?' 'Igen'!",
+                correctFunction: "SZUMHA", correctFormula: "=SZUMHA(E2:E8;\"Igen\";G2:G8)", syntaxHint: "=SZUMHA(honnan van a feltételem; mi a feltételem;összeadandó számok)"
+            },
+            {
+                sheetId: 1,
+                question: "Hány tételt adott el Anna?",
+                hint: "Számold meg, hányszor szerepel 'Anna' az 'Eladó' oszlopban!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(F2:F8;\"Anna\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 1,
+                question: "Mennyi a legolcsóbb termék egységára?",
+                hint: "Keresd meg a minimum értéket az 'Egységár' oszlopban!",
+                correctFunction: "MIN", correctFormula: "=MIN(C2:C8)", syntaxHint: "=MIN(honnan választok)"
+            },
+            {
+                sheetId: 1,
+                question: "Mi a 3. legnagyobb bevétel?",
+                hint: "Keresd meg a 3. legnagyobb értéket a 'Bevétel' oszlopban!",
+                correctFunction: "NAGY", correctFormula: "=NAGY(G2:G8;3)", syntaxHint: "=NAGY(honnan választok;hányadikat választom)"
+            },
+            {
+                sheetId: 1,
+                question: "100000 Ft bevétel felett 5000 Ft bónusz jár, egyébként nem jár bónusz. Írj képletet, amely megadja, hogy jár-e a bónusz vagy nem (ha igen, akkor 5000 Ft legyen az eredmény, ha nem, akkor 0 Ft!",
+                hint: "A vizsgálatot (100000 Ft felett) az első termék (Kenyér) bevételén végezd el!",
+                correctFunction: "HA", correctFormula: "=HA(G2>100000;5000;0)", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            },
+
+            // --- 2. Jegyek (sheetId: 2) ---
+            {
+                sheetId: 2,
+                question: "Mennyi az átlagos pontszám?",
+                hint: "Számold ki a 'Pontszám' oszlop átlagát!",
+                correctFunction: "ÁTLAG", correctFormula: "=ÁTLAG(D2:D11)", syntaxHint: "=ÁTLAG(átlagolandó számok)"
+            },
+            {
+                sheetId: 2,
+                question: "Mennyi az Angol tárgy átlaga?",
+                hint: "Számold ki a jegyek átlagát, ahol a tantárgy 'Angol'.",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(B2:B11;\"Angol\";C2:C11)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem; átlagolandó számok)"
+            },
+            {
+                sheetId: 2,
+                question: "Hány 5-ös jegy van?",
+                hint: "Számold meg, hányszor szerepel '5' a 'Jegy' oszlopban!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(C2:C11;5)", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 2,
+                question: "Mennyi a minimum pontszám?",
+                hint: "Keresd meg a minimum értéket a 'Pontszám' oszlopban!",
+                correctFunction: "MIN", correctFormula: "=MIN(D2:D11)", syntaxHint: "=MIN(honnan választok)"
+            },
+            {
+                sheetId: 2,
+                question: "Mennyi a maximum pontszám?",
+                hint: "Keresd meg a maximum értéket a 'Pontszám' oszlopban!",
+                correctFunction: "MAX", correctFormula: "=MAX(D2:D11)", syntaxHint: "=MAX(honnan választok)"
+            },
+            {
+                sheetId: 2,
+                question: "Amennyiben valaki elért legalább 60 pontot, sikeres a vizsga. Írj képletet, amely megállapítja, hogy sikerült-e a vizsga (ha igen, akkor az eredmény 'Sikeres', különben 'Sikertelen')",
+                hint: "A vizsgálatot (elért-e 60 pontot) az első diák (Dorka) pontszámán végezd el.",
+                correctFunction: "HA", correctFormula: "=HA(D2>=60;\"Sikeres\";\"Sikertelen\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            },
+
+            // --- 3. Foci (sheetId: 3) ---
+            {
+                sheetId: 3,
+                question: "Hány gólt lőtt összesen a Párducok csapat?",
+                hint: "Összegezd a 'Gól' értékét, ahol a csapat 'Párducok'!",
+                correctFunction: "SZUMHA", correctFormula: "=SZUMHA(B2:B9;\"Párducok\";C2:C9)", syntaxHint: "=SZUMHA(honnan van a feltételem; mi a feltételem;összeadandó számok)"
+            },
+            {
+                sheetId: 3,
+                question: "Mennyi az átlagos lövés hazai meccseken?",
+                hint: "Számold ki a 'Lövés' átlagát, ahol a hazai 'Igen'!",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(F2:F9;\"Igen\";D2:F9)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem;átlagolandó számok)"
+            },
+            {
+                sheetId: 3,
+                question: "Mennyi volt a legtöbb gól egy meccsen?",
+                hint: "Keresd meg a maximum értéket a 'Gól' oszlopban!",
+                correctFunction: "MAX", correctFormula: "=MAX(C2:C9)", syntaxHint: "=MAX(honnan választok)"
+            },
+            {
+                sheetId: 3,
+                question: "Írj képletet, amely megállapítja, hogy győzött-e a csapat vagy nem, azaz több gólt rúgtak, mint kaptak! Ha győztek, legyen az eredmény 'Győzelem', ha nem, akkor 'Veszteség'.",
+                hint: "A vizsgálatot (több gólt rúgtak, mint kaptak) az első meccsen végezd el.",
+                correctFunction: "HA", correctFormula: "=HA(C2>E2;\"Győzelem\";\"Veszteség\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            },
+{
+                sheetId: 3,
+                question: "Hány meccsen nem született gól?",
+                hint: "Számold meg a 'Gól' oszlopban a nullákat!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(C2:C9;0)", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 3,
+                question: "Mi a 2. legnagyobb lövésszám?",
+                hint: "Keresd meg a 2. legnagyobb értéket a 'Lövés' oszlopban!",
+                correctFunction: "NAGY", correctFormula: "=NAGY(D2:D9;2)", syntaxHint: "=NAGY(honnan választok;hányadikat választom)"
+            },
+
+            // --- 4. Utazás (sheetId: 4) ---
+            {
+                sheetId: 4,
+                question: "Mennyi az összes foglalási összeg?",
+                hint: "Összesítsd az 'Összeg' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(F2:F9)", syntaxHint: "=SZUM(összeadandó számok)"
+            },
+            {
+                sheetId: 4,
+                question: "Mennyi az átlagos ár/éj Róma esetén?",
+                hint: "Számold ki az 'Ár/éj' átlagát, ahol az úticél 'Róma'.",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(B2:B9;\"Róma\";D2:D9)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem;átlagolandó számok)"
+            },
+            {
+                sheetId: 4,
+                question: "Hány éjszakát foglaltak félpanzióval?",
+                hint: "Összegezd a 'Napok' számát, ahol a félpanzió 'Igen'.",
+                correctFunction: "SZUMHA", correctFormula: "=SZUMHA(E2:E9;\"Igen\";C2:C9)", syntaxHint: "=SZUMHA(honnan van a feltételem; mi a feltételem;összeadandó számok)"
+            },
+{
+                sheetId: 4,
+                question: "Hányan fizetnek legfeljebb 150 ezer forintot a nyaralásért?",
+                hint: "Számold meg az 'Összeg' oszlopban azokat a cellákat, amelyekben legfeljebb 150 ezer Ft az érték!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(F2:F9;\"<=150000\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 4,
+                question: "Legalább 5 napos foglalásnál 10% kedvezmény jár. Írj képletet, amely megállapítja, hogy jár-e a kedvezmény! Ha igen, akkor az eredmény '10%', különben '0%' legyen.",
+                hint: "A vizsgálatot (legalább 5 napot foglalt) az első utas (Anna) 'Napok' számán végezd el!",
+                correctFunction: "HA", correctFormula: "=HA(C2>=5;\"10%\";\"0%\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            },
+            {
+                sheetId: 4,
+                question: "Kerekítsd az első utas (Anna) összegét ezresre!",
+                hint: "Az ezresre kerekítéshez -3-at használj!",
+                correctFunction: "KEREKÍTÉS", correctFormula: "=KEREKÍTÉS(F2;-3)", syntaxHint: "=KEREKÍTÉS(szám;tizedesjegyek)"
+            },
+
+            // --- 5. Könyvtár (sheetId: 5) ---
+            {
+                sheetId: 5,
+                question: "Hány kölcsönzés késett?",
+                hint: "Számold meg, hányszor nagyobb a 'Késés nap' nullánál!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(D2:D9;\">0\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 5,
+                question: "Mennyi a teljes késedelmi díj?",
+                hint: "Összesítsd a 'Késedelmi díj' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(F2:F9)", syntaxHint: "=SZUM(összeadandó számok)"
+            },
+            {
+                sheetId: 5,
+                question: "Mennyi az átlagos oldalszám a 'Regény' műfajban?",
+                hint: "Számold ki az 'Oldalszám' átlagát, ahol a műfaj 'Regény'!",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(B2:B9;\"Regény\";C2:C9)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem; átlagolandó számok)"
+            },
+{
+                sheetId: 5,
+                question: "Összesen hány napra kölcsönözték ki a 'Krimi' műfajú könyveket?",
+                hint: "Összegezd a kölcsönzés napjait, ahol a műfaj 'Krimi'!",
+                correctFunction: "SZUMHA", correctFormula: "=SZUMHA(B2:B9;\"Krimi\";E2:E9)", syntaxHint: "=SZUMHA(honnan van a feltételem; mi a feltételem; összeadandó számok)"
+            },
+            {
+                sheetId: 5,
+                question: "Írj képletet, amely megadja az oldalszám alapján, hogy a könyv rövid olvasmány-e! Ha 200 oldalnál kevesebb, akkor az eredmény 'Rövid', különben 'Hosszú' legyen.",
+                hint: "A vizsgálatot (200 oldalnál kevesebb) az első olvasó (Éva) könyvén végezd el!",
+                correctFunction: "HA", correctFormula: "=HA(C2<200;\"Rövid\";\"Hosszú\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            },
+
+            // --- 6. Időjárás (sheetId: 6) ---
+            {
+                sheetId: 6,
+                question: "Mennyi volt az átlaghőmérséklet a héten?",
+                hint: "Számold ki a 'Hőmérséklet (°C)' oszlop átlagát!",
+                correctFunction: "ÁTLAG", correctFormula: "=ÁTLAG(C2:C8)", syntaxHint: "=ÁTLAG(átlagolandó számok)"
+            },
+            {
+                sheetId: 6,
+                question: "Mennyi csapadék esett összesen?",
+                hint: "Összesítsd a 'Csapadék (mm)' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(D2:D8)", syntaxHint: "=SZUM(összeadandó számok)"
+            },
+{
+                sheetId: 6,
+                question: "Hány nap fújt legalább 15 km/h-s szél?",
+                hint: "Számold meg a 'Szél (km/h)' oszlopban a legalább 15 km/h-s értékeket!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(E2:E8;\">=15\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 6,
+                question: "Melyik volt a legszelesebb nap (km/h)?",
+                hint: "Keresd meg a maximum értéket a 'Szél (km/h)' oszlopban!",
+                correctFunction: "MAX", correctFormula: "=MAX(E2:E8)", syntaxHint: "=MAX(honnan választok)"
+            },
+            {
+                sheetId: 6,
+                question: "Kerekítsd az első nap hőmérsékletét egész számra!",
+                hint: "Az egész számra kerekítéshez 0-t használj!",
+                correctFunction: "KEREKÍTÉS", correctFormula: "=KEREKÍTÉS(C2;0)", syntaxHint: "=KEREKÍTÉS(szám;tizedesjegyek)"
+            },
+
+             // --- 7. Webshop (sheetId: 7) ---
+            {
+                sheetId: 7,
+                question: "Mennyi az összes bruttó bevétel?",
+                hint: "Összesítsd a 'Bruttó' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(G2:G8)", syntaxHint: "=SZUM(összeadandó számok)"
+            },
+{
+                sheetId: 7,
+                question: "Mennyi a 2. legkisebb ÁFA kulcs?",
+                hint: "Keresd meg a 2. legkisebb értéket az 'ÁFA kulcs' oszlopban!",
+                correctFunction: "KICSI", correctFormula: "=KICSI(E2:E8;2)", syntaxHint: "=KICSI(honnan választok;hányadikat választom)"
+            },
+            {
+                sheetId: 7,
+                question: "Mennyi az átlagos nettó összeg magyar rendelésekre?",
+                hint: "Számold ki a 'Nettó' átlagát, ahol az ország 'HU'!",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(C2:C8;\"HU\";D2:D8)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem; átlagolandó számok)"
+            },
+{
+                sheetId: 7,
+                question: "Kerekítsd az első bruttó összeget egész számra!",
+                hint: "Az egész számra való kerekítésnél használj 0-t!",
+                correctFunction: "KEREKÍTÉS", correctFormula: "=KEREKÍTÉS(G2;0)", syntaxHint: "=KEREKÍTÉS(szám;tizedesjegyek)"
+            },
+            {
+                sheetId: 7,
+                question: "Hány rendelésben volt szállítási díj?",
+                hint: "Számold meg, hányszor nagyobb a 'Szállítási díj' nullánál!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(F2:F8;\">0\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 7,
+                question: "Legalább 20 ezer forintos rendelésnél ingyenes a házhozszállítás. Írj képletet, amely megállapítja, hogy jár-e az ingyenes szállítás. Ha igen, az eredmény 'Ingyenes' legyen, különben 'Nem'. ",
+                hint: "A vizsgálatot (legalább 20 ezer forint) az első rendelés (Kovács) 'Nettó' értékén végezd el!",
+                correctFunction: "HA", correctFormula: "=HA(D2>=20000;\"Ingyenes\";\"Nem\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            },
+
+            // --- 8. Gyártás (sheetId: 8) ---
+            {
+                sheetId: 8,
+                question: "Mennyi az átlagos selejt%?",
+                hint: "Számold ki a 'Selejt %' oszlop átlagát!",
+                correctFunction: "ÁTLAG", correctFormula: "=ÁTLAG(F2:F8)", syntaxHint: "=ÁTLAG(átlagolandó számok)"
+            },
+            {
+                sheetId: 8,
+                question: "Mennyi a hibás darabok száma összesen?",
+                hint: "Összesítsd a 'Hibás db' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(D2:D8)", syntaxHint: "=SZUM(összeadandó számok)"
+            },
+{
+                sheetId: 8,
+                question: "Hány éjjeli műszak van?",
+                hint: "Számold meg a 'Műszak' oszlopban az éjjeleket!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(E2:E8;\"Éjjel\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+{
+                sheetId: 8,
+                question: "Mennyi volt a legtöbb hibás darab?",
+                hint: "Keresd meg a 'Hibás db' oszlopban a legnagyobb értéket!",
+                correctFunction: "MAX", correctFormula: "=MAX(D2:D8)", syntaxHint: "=MAX(honnan választok)"
+            },
+            {
+                sheetId: 8,
+                question: "Mennyi az átlagos selejt% az 'Észak' üzemben?",
+                hint: "Számold ki a 'Selejt %' átlagát, ahol az üzem 'Észak'!",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(B2:B8;\"Észak\";F2:F8)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem; átlagolandó számok)"
+            },
+            {
+                sheetId: 8,
+                question: "Ha a Selejt % 0.015 (azaz 1.5%) felett van, akkor eredményként írasd ki, hogy 'Riasztás', különben semmit!",
+                hint: "A vizsgálatot az első tétel (A01) 'Selejt %' értékén végezd el!",
+                correctFunction: "HA", correctFormula: "=HA(F2>0,015;\"Riasztás\";\"\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            },
+            {
+                sheetId: 8,
+                question: "Kerekítsd az első tétel (A01) selejt%-át két tizedesre.",
+                hint: "A két tizedesjegyre kerekítéshez 2-t használj! (Figyelem: a selejt% 0,007, nem 0.7!)",
+                correctFunction: "KEREKÍTÉS", correctFormula: "=KEREKÍTÉS(F2;2)", syntaxHint: "=KEREKÍTÉS(szám;tizedesjegyek)"
+            },
+
+            // --- 9. Adomány (sheetId: 9) ---
+            {
+                sheetId: 9,
+                question: "Mennyi a teljes adományösszeg?",
+                hint: "Összesítsd az 'Összeg' oszlopot!",
+                correctFunction: "SZUM", correctFormula: "=SZUM(C2:C9)", syntaxHint: "=SZUM(összeadandó számok)"
+            },
+{
+                sheetId: 9,
+                question: "Mekkora a 2. legnagyobb adomány?",
+                hint: "Keresd meg a 2. legnagyobb értéket az 'Összeg' oszlopban!",
+                correctFunction: "NAGY", correctFormula: "=NAGY(C2:C9;2)", syntaxHint: "=NAGY(honnan választok;hányadikat választom)"
+            },
+            {
+                sheetId: 9,
+                question: "Mennyi az átlagos adomány összege 'Online' csatornán?",
+                hint: "Számold ki az 'Összeg' átlagát, ahol a csatorna 'Online'!",
+                correctFunction: "ÁTLAGHA", correctFormula: "=ÁTLAGHA(B2:B9;\"Online\";C2:C9)", syntaxHint: "=ÁTLAGHA(honnan van a feltételem; mi a feltételem; átlagolandó számok)"
+            },
+            {
+                sheetId: 9,
+                question: "Hány ismétlődő adomány van?",
+                hint: "Számold meg, hányszor szerepel 'Igen' az 'Ismétlődik?' oszlopban!",
+                correctFunction: "DARABTELI", correctFormula: "=DARABTELI(D2:D9;\"Igen\")", syntaxHint: "=DARABTELI(honnan választok;mi alapján választok)"
+            },
+            {
+                sheetId: 9,
+                question: "Mennyi a legnagyobb adomány?",
+                hint: "Keresd meg a maximum értéket az 'Összeg' oszlopban!",
+                correctFunction: "MAX", correctFormula: "=MAX(C2:C9)", syntaxHint: "=MAX(honnan választok)"
+            },
+            {
+                sheetId: 9,
+                question: "A legalább 150 ezer forintos adomány kiemeltnek számít. Írj képletet, amely megadja, hogy az adomány kiemelt-e vagy nem! Ha igen, az eredmény 'Kiemelt' legyen, ha nem, akkor semmi.",
+                hint: "A vizsgálatot az első adományozó (Alfa Kft.) 'Összeg' értékén végezd el!",
+                correctFunction: "HA", correctFormula: "=HA(C2>=150000;\"Kiemelt\";\"\")", syntaxHint: "=HA(állítás;igaz_érték;hamis_érték)"
+            }
+        ];
+        
+        // --- ALKALMAZÁS LOGIKA (MÓDOSÍTVA) ---
+
+        let currentMode = null; // 'practice' vagy 'challenge'
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = []; // Az aktuális módhoz kevert kérdések
+        let challengeAnswers = []; // A kihívás mód válaszai
+
+        // DOM elemek
+        const appWrapper = document.getElementById('app-wrapper');
+        const challengeResultsContainer = document.getElementById('challenge-results-container');
+        
+        const startChallengeBtn = document.getElementById('start-challenge-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const modeSwitchContainer = document.getElementById('mode-switch-container');
+        
+        const dataTableEl = document.getElementById('data-table');
+        const dataTableTitleEl = document.getElementById('data-table-title'); 
+        const quizTitleEl = document.getElementById('quiz-title');
+        const questionAreaEl = document.getElementById('question-area');
+        const questionTextEl = document.getElementById('question-text');
+        const questionHintEl = document.getElementById('question-hint');
+        const feedbackAreaEl = document.getElementById('feedback-area');
+        const syntaxHintAreaEl = document.getElementById('syntax-hint-area');
+        
+        const step1El = document.getElementById('step-1');
+        const functionDropdownEl = document.getElementById('function-dropdown');
+        const checkFunctionBtn = document.getElementById('check-function-btn');
+        
+        const step2El = document.getElementById('step-2');
+        const formulaInputEl = document.getElementById('formula-input');
+        const checkFormulaBtn = document.getElementById('check-formula-btn');
+        
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        
+        const challengeResultsList = document.getElementById('challenge-results-list');
+        const challengeScore = document.getElementById('challenge-score');
+
+
+        // Fisher-Yates keverő függvény
+        function shuffleArray(array) {
+            let currentIndex = array.length;
+            let randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // Táblázat kirajzolása (Excel nézet)
+        function renderTable(tableData) {
+            let html = '<table>';
+            const headers = Object.keys(tableData[0]);
+
+            // 1. Fejlécsor (Betűk: A, B, C...)
+            html += '<thead><tr>';
+            html += '<th></th>'; // Bal felső sarok
+            let colChar = 'A';
+            headers.forEach(header => {
+                html += `<th>${colChar}</th>`; 
+                colChar = String.fromCharCode(colChar.charCodeAt(0) + 1);
+            });
+            html += '</tr></thead>';
+
+            // 2. Táblatörzs (tbody)
+            html += '<tbody>';
+            
+            // 3. Oszlopnevek sora (Sor 1)
+            html += '<tr>';
+            html += '<th>1</th>'; // Sor 1 azonosító
+            headers.forEach(header => {
+                html += `<td><b>${header}</b></td>`; // Oszlopnevek félkövéren
+            });
+            html += '</tr>';
+
+            // 4. Adatsorok (Sor 2-től)
+            tableData.forEach((row, index) => {
+                html += '<tr>';
+                html += `<th>${index + 2}</th>`; // Sor 2, 3, 4... azonosító
+                headers.forEach(header => {
+                    let value = row[header];
+                    // Számformázás
+                    if (typeof value === 'number') {
+                        if (value > 1000) { 
+                            value = value.toLocaleString('hu-HU');
+                        } else if (value > 0 && value < 1) { 
+                             value = value.toLocaleString('hu-HU', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+                        }
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            dataTableEl.innerHTML = html;
+        }
+
+        // Függvényválasztó feltöltése
+        function populateDropdown() {
+            functionDropdownEl.innerHTML = '';
+            allFunctions.forEach(funcName => {
+                const option = document.createElement('option');
+                option.value = funcName;
+                option.textContent = funcName;
+                functionDropdownEl.appendChild(option);
+            });
+        }
+
+        // Gyakorló mód indítása (ez az alapértelmezett)
+        function startPracticeMode() {
+            currentMode = 'practice';
+            shuffledQuestions = shuffleArray([...allQuestions]);
+            currentQuestionIndex = 0;
+            
+            // UI váltás
+            appWrapper.style.display = 'grid';
+            challengeResultsContainer.style.display = 'none';
+            modeSwitchContainer.style.display = 'block'; // Kihívás gomb látszik
+            questionAreaEl.style.display = 'block';
+            
+            loadQuestion(currentQuestionIndex);
+        }
+
+        // Kihívás mód indítása
+        function startChallengeMode() {
+            currentMode = 'challenge';
+            // Válassz 5 véletlen kérdést
+            shuffledQuestions = shuffleArray([...allQuestions]).slice(0, 5); 
+            currentQuestionIndex = 0;
+            challengeAnswers = []; // Válaszok tárolója
+            
+            // UI váltás
+            appWrapper.style.display = 'grid';
+            challengeResultsContainer.style.display = 'none';
+            modeSwitchContainer.style.display = 'none'; // Kihívás gomb elrejtése
+            questionAreaEl.style.display = 'block';
+            
+            loadQuestion(currentQuestionIndex);
+        }
+
+        // Feladat betöltése (Mód-függő)
+        function loadQuestion(index) {
+            const q = shuffledQuestions[index];
+            const table = allTables[q.sheetId];
+
+            // Táblázat frissítése
+            dataTableTitleEl.textContent = `Adattábla: ${table.sheetName}`;
+            renderTable(table.tableData);
+
+            // Alap UI visszaállítás
+            formulaInputEl.value = '';
+            feedbackAreaEl.innerHTML = '';
+            feedbackAreaEl.className = '';
+            syntaxHintAreaEl.style.display = 'none';
+            checkFormulaBtn.style.display = 'block'; 
+
+            if (currentMode === 'practice') {
+                // --- GYAKORLÓ MÓD ---
+                quizTitleEl.textContent = 'Gyakorló Mód';
+                questionTextEl.textContent = `${index + 1}. ${q.question}`;
+                questionHintEl.textContent = '';
+                questionHintEl.style.display = 'none';
+                
+                step1El.style.display = 'block'; // 1. lépés látszik
+                step2El.style.display = 'none';
+                nextQuestionBtn.style.display = 'none';
+                
+                functionDropdownEl.value = 'Válassz...';
+                checkFormulaBtn.textContent = 'Képlet ellenőrzése';
+
+            } else if (currentMode === 'challenge') {
+                // --- KIHÍVÁS MÓD (MÓDOSÍTVA) ---
+                quizTitleEl.textContent = `Kihívás Mód (Feladat: ${index + 1}/${shuffledQuestions.length})`;
+                questionTextEl.textContent = `${q.question}`; // Csak a kérdés
+                
+                // --- MÓDOSÍTÁS (Kérés alapján) ---
+                // Segítség (hint) ELTÁVOLÍTVA
+                questionHintEl.textContent = '';
+                questionHintEl.style.display = 'none';
+                // --- MÓDOSÍTÁS VÉGE ---
+                
+                step1El.style.display = 'none'; // 1. lépés rejtve
+                step2El.style.display = 'block'; // 2. lépés látszik
+                nextQuestionBtn.style.display = 'none';
+                
+                formulaInputEl.value = '=';
+                checkFormulaBtn.textContent = 'Válasz rögzítése';
+            }
+        }
+
+        // Visszajelzés megjelenítése
+        function showFeedback(message, type) {
+            feedbackAreaEl.textContent = message;
+            feedbackAreaEl.className = type === 'success' ? 'feedback-success' : 'feedback-error';
+        }
+
+        // 1. Lépés: Függvény ellenőrzése (csak Gyakorló módban)
+        function handleCheckFunction() {
+            const selectedFunction = functionDropdownEl.value;
+            const q = shuffledQuestions[currentQuestionIndex]; 
+
+            if (selectedFunction === q.correctFunction) {
+                showFeedback('Helyes! A függvény megfelelő. Most írd be a teljes képletet.', 'success');
+                step1El.style.display = 'none';
+                
+                questionHintEl.textContent = `Segítség: ${q.hint}`;
+                questionHintEl.style.display = 'block';
+                
+                step2El.style.display = 'block';
+                formulaInputEl.value = '=';
+                formulaInputEl.focus();
+                
+                syntaxHintAreaEl.style.display = 'none'; 
+            } else {
+                showFeedback('Hibás függvény. Gondold át újra!', 'error');
+                syntaxHintAreaEl.style.display = 'none'; 
+            }
+        }
+
+        // 2. Lépés: Képlet ellenőrzése (Mód-függő)
+        function handleCheckFormula() {
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Tisztítás: szóközök, nagybetű, tizedesvessző cseréje pontra
+            const userFormula = formulaInputEl.value
+                .replace(/\s+/g, '')
+                .toUpperCase()
+                .replace(/,/g, '.');
+
+            const correctFormula = q.correctFormula
+                .replace(/\s+/g, '')
+                .toUpperCase()
+                .replace(/,/g, '.');
+
+            if (currentMode === 'practice') {
+                // --- GYAKORLÓ MÓD: Azonnali ellenőrzés ---
+                if (userFormula === correctFormula) {
+                    showFeedback('Kiváló! A képlet tökéletes.', 'success');
+                    step2El.style.display = 'none';
+                    questionHintEl.style.display = 'none';
+                    syntaxHintAreaEl.style.display = 'none'; 
+                    checkFormulaBtn.style.display = 'none'; 
+                    nextQuestionBtn.style.display = 'block'; 
+                } else {
+                    showFeedback('A képlet nem pontos. Nézd meg a szintaxis súgót és próbáld újra!', 'error');
+                    syntaxHintAreaEl.textContent = q.syntaxHint;
+                    syntaxHintAreaEl.style.display = 'block';
+                    nextQuestionBtn.style.display = 'none'; 
+                }
+            } else if (currentMode === 'challenge') {
+                // --- KIHÍVÁS MÓD: Nincs ellenőrzés, csak rögzítés ---
+                challengeAnswers.push(formulaInputEl.value); // Válasz elmentése
+                currentQuestionIndex++;
+
+                if (currentQuestionIndex < shuffledQuestions.length) {
+                    // Van még kérdés
+                    loadQuestion(currentQuestionIndex);
+                } else {
+                    // Kihívás vége
+                    showChallengeResults();
+                }
+            }
+        }
+
+        // 3. Lépés: Tovább a következőre (csak Gyakorló módban)
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                // Gyakorló mód vége
+                quizTitleEl.textContent = 'A végére értél!';
+                questionTextEl.textContent = '';
+                questionHintEl.style.display = 'none';
+                syntaxHintAreaEl.style.display = 'none';
+                step1El.style.display = 'none';
+                step2El.style.display = 'none';
+                nextQuestionBtn.style.display = 'none';
+                feedbackAreaEl.innerHTML = ''; // Töröljük a korábbi visszajelzést
+                dataTableEl.innerHTML = ''; 
+                dataTableTitleEl.textContent = 'Szép munka!';
+
+                showFeedback(`Gratulálok, sikeresen teljesítetted mind a ${shuffledQuestions.length} feladatot!`, 'success');
+                
+                // Gomb az újraindításhoz
+                const practiceRestartBtn = document.createElement('button');
+                practiceRestartBtn.textContent = 'Gyakorlás újraindítása';
+                practiceRestartBtn.style.marginTop = '15px';
+                practiceRestartBtn.addEventListener('click', startPracticeMode);
+                feedbackAreaEl.appendChild(practiceRestartBtn);
+            }
+        }
+
+        // Kihívás eredményeinek megjelenítése
+        function showChallengeResults() {
+            appWrapper.style.display = 'none';
+            challengeResultsContainer.style.display = 'block';
+            
+            let score = 0;
+            let resultsHTML = '';
+            
+            for (let i = 0; i < shuffledQuestions.length; i++) {
+                const q = shuffledQuestions[i];
+                const userAnswerRaw = challengeAnswers[i] || ""; 
+                
+                const userAnswerClean = userAnswerRaw.replace(/\s+/g, '').toUpperCase().replace(/,/g, '.');
+                const correctFormulaClean = q.correctFormula.replace(/\s+/g, '').toUpperCase().replace(/,/g, '.');
+                
+                const isCorrect = (userAnswerClean === correctFormulaClean);
+                if (isCorrect) score++;
+                
+                resultsHTML += `<div class="result-item ${isCorrect ? 'correct' : 'incorrect'}">`;
+                resultsHTML += `<h4>${i + 1}. ${q.question}</h4>`;
+                resultsHTML += `<p><b>A válaszod:</b> ${userAnswerRaw || '<i>(Nem válaszoltál)</i>'}</p>`;
+                if (!isCorrect) {
+                    resultsHTML += `<p><b>Helyes megoldás:</b> ${q.correctFormula}</p>`;
+                }
+                resultsHTML += `</div>`;
+            }
+            
+            challengeResultsList.innerHTML = resultsHTML;
+            challengeScore.textContent = `Eredményed: ${shuffledQuestions.length}-ből ${score} helyes!`;
+            restartBtn.textContent = "Vissza a Gyakorláshoz";
+        }
+
+
+        // --- INICIALIZÁLÁS (MÓDOSÍTVA) ---
+        function initializePage() {
+            // Eseménykezelők a gombokhoz
+            startChallengeBtn.addEventListener('click', startChallengeMode); 
+            restartBtn.addEventListener('click', startPracticeMode); 
+            
+            checkFunctionBtn.addEventListener('click', handleCheckFunction);
+            checkFormulaBtn.addEventListener('click', handleCheckFormula);
+            nextQuestionBtn.addEventListener('click', handleNextQuestion);
+
+            // Legördülő menü feltöltése (elég egyszer)
+            populateDropdown();
+            
+            // Alkalmazás indítása Gyakorló módban
+            startPracticeMode();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
